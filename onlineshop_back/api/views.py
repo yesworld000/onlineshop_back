@@ -15,12 +15,63 @@ from rest_framework.views import APIView
 
 from rest_framework.permissions import IsAuthenticated
 
+from django.shortcuts import render, redirect
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 
+
+def register_page(request):
+    # if request.user.is_authenticated():
+    #     return redirect('home')
+    # else:
+    form = UserCreationForm()
+
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            name = form.cleaned_data.get('username')
+            messages.success(request, 'Welcome to us, '+name+'!')
+
+            return redirect('login')
+
+    context = {"form": form}
+    return render(request, 'accounts/registration.html', context)
+
+
+def login_page(request):
+    # if request.user.is_authenticated():
+    #     return redirect('home')
+    # else:
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            # return redirect('register')
+        else:
+            messages.info(request, 'Username or password is incorrect')
+
+    context = {}
+    return render(request, 'accounts/login.html', context)
+
+
+def logout_user(request):
+    logout(request)
+    return redirect('login')
+
+
+# @login_required(login_url='login')
 @api_view(['GET', 'POST'])
 def products_list(request):
     if request.method == 'GET':
-        vacancies = Product.objects.all()
-        serializer = ProductSerializer(vacancies, many=True)
+        product = Product.objects.all()
+        serializer = ProductSerializer(product, many=True)
         return Response(serializer.data)
     elif request.method == 'POST':
         serializer = ProductSerializer(data=request.data)
@@ -62,21 +113,21 @@ def products_list(request):
 @api_view(['GET', 'PUT', 'DELETE'])
 def product_detail(request, product_id):
     try:
-        vacancies = Product.objects.get(id=product_id)
+        product = Product.objects.get(id=product_id)
     except Product.DoesNotExist as e:
         return Response({'error': str(e)})
 
     if request.method == 'GET':
-        s = ProductSerializer(vacancies)
+        s = ProductSerializer(product)
         return Response(s.data)
     elif request.method == 'PUT':
-        s = ProductSerializer(instance=vacancies, data=request.data)
+        s = ProductSerializer(instance=product, data=request.data)
         if s.is_valid():
             s.save()
             return Response(s.data)
         return Response({'error': s.errors})
     elif request.method == 'DELETE':
-        vacancies.delete()
+        product.delete()
         return JsonResponse({'deleted': True})
 
 
@@ -146,7 +197,7 @@ def by_category_detail(request, ctg, product_id):
 
 
 class CategoryList(APIView):
-    permission_classes = (IsAuthenticated, )
+    # permission_classes = (IsAuthenticated, )
 
     def get(self, request):
         cs = Category.objects.all()

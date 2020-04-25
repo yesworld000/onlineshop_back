@@ -1,0 +1,31 @@
+<h3>Login</h3>
+<html>
+  <body>
+    <div class="all">
+     <div class="header"> <app-header></app-header></div>
+     <div class="betweenCon">
+    </div>
+    <form method="POST" class = "login-box">
+        {% csrf_token %}
+        <h1>Login</h1>
+            <div class = "textbox">
+                <i class = "fa fa-user" aria-hidden="true"></i>
+                <input type="text" placeholder="Username" id="username" name="username">
+            </div>
+            <div class = "textbox">
+                <i class = "fa fa-lock" aria-hidden="true"></i>
+                <input type="password" placeholder="Password" id="password" name="password">
+            </div>
+            <div>
+                <input class = "btn" type="submit" value="SIGN IN">
+            </div>
+    </form>
+
+        {% for message in messages %}
+            <p id="messages">{{ message }}</p>
+        {% endfor %}
+
+    </div>
+    <app-footer></app-footer>
+  </body>
+</html>
